@@ -1,0 +1,37 @@
+.shell {
+  display: grid;
+  grid-template-columns: var(--layout-sidebar-width) 1fr var(--layout-inspector-width);
+  grid-template-rows: var(--layout-toolbar-height) 1fr var(--layout-timeline-height);
+  grid-template-areas:
+    'toolbar toolbar toolbar'
+    'layers stage inspector'
+    'timeline timeline timeline';
+  height: 100vh;
+}
+
+.toolbar {
+  grid-area: toolbar;
+}
+
+.layers {
+  grid-area: layers;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+.stage {
+  grid-area: stage;
+  background: var(--color-bg);
+}
+
+.inspector {
+  grid-area: inspector;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+}
+
+.timeline {
+  grid-area: timeline;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
