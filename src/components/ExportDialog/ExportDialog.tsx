@@ -1,12 +1,10 @@
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { copyText } from '../../lib/clipboard'
 import { downloadText } from '../../lib/download'
 import { selectProject, useEditorStore } from '../../store/editorStore'
+import { Modal } from '../ui/Modal'
 import styles from './ExportDialog.module.css'
 import { buildExportTabs, type ExportFile } from './exportFiles'
-
-const FOCUSABLE =
-  'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
 const INITIAL_TAB = 'css'
 
@@ -57,27 +55,14 @@ interface ExportDialogProps {
   onClose: () => void
 }
 
-/**
- * A modal dialog with one tab per export format. Escape or a press on the
- * backdrop closes it, Tab stays inside it, and focus returns to where it was.
- */
+/** A modal dialog with one tab per export format. */
 export function ExportDialog({ onClose }: ExportDialogProps) {
   const project = useEditorStore(selectProject)
   const tabs = useMemo(() => buildExportTabs(project), [project])
   const [activeId, setActiveId] = useState<string>(INITIAL_TAB)
-  const titleId = useId()
-  const dialogRef = useRef<HTMLDivElement>(null)
+  const idBase = useId()
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0]
-
-  useEffect(() => {
-    // When the dialog opens, focus moves to the first tab, which is the open one.
-    const opener = document.activeElement
-    tabRefs.current[INITIAL_TAB]?.focus()
-    return () => {
-      if (opener instanceof HTMLElement) opener.focus()
-    }
-  }, [])
 
   const selectTab = (index: number): void => {
     const next = tabs[(index + tabs.length) % tabs.length]
@@ -99,88 +84,47 @@ export function ExportDialog({ onClose }: ExportDialogProps) {
     selectTab(target)
   }
 
-  const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (event.key === 'Escape') {
-      event.stopPropagation()
-      onClose()
-      return
-    }
-    if (event.key !== 'Tab') return
-    const focusable = [...(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])]
-    const first = focusable[0]
-    const last = focusable[focusable.length - 1]
-    if (!first || !last) return
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault()
-      last.focus()
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault()
-      first.focus()
-    }
-  }
-
   return (
-    <div
-      className={styles.backdrop}
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose()
-      }}
-    >
-      <div
-        ref={dialogRef}
-        className={styles.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        onKeyDown={handleDialogKeyDown}
-      >
-        <div className={styles.header}>
-          <h2 id={titleId} className={styles.title}>
-            Export
-          </h2>
-          <button type="button" className={styles.button} onClick={onClose}>
-            Close
+    <Modal title="Export" onClose={onClose} width={900}>
+      <div role="tablist" aria-label="Export format" className={styles.tabs}>
+        {tabs.map((tab, index) => (
+          <button
+            key={tab.id}
+            ref={(element) => {
+              tabRefs.current[tab.id] = element
+            }}
+            type="button"
+            role="tab"
+            id={`${idBase}-tab-${tab.id}`}
+            aria-selected={tab.id === active?.id}
+            aria-controls={`${idBase}-panel`}
+            tabIndex={tab.id === active?.id ? 0 : -1}
+            data-autofocus={tab.id === active?.id ? '' : undefined}
+            className={styles.tab}
+            onClick={() => {
+              setActiveId(tab.id)
+            }}
+            onKeyDown={(event) => {
+              handleTabKeyDown(event, index)
+            }}
+          >
+            {tab.label}
           </button>
-        </div>
-        <div role="tablist" aria-label="Export format" className={styles.tabs}>
-          {tabs.map((tab, index) => (
-            <button
-              key={tab.id}
-              ref={(element) => {
-                tabRefs.current[tab.id] = element
-              }}
-              type="button"
-              role="tab"
-              id={`${titleId}-tab-${tab.id}`}
-              aria-selected={tab.id === active?.id}
-              aria-controls={`${titleId}-panel`}
-              tabIndex={tab.id === active?.id ? 0 : -1}
-              className={styles.tab}
-              onClick={() => {
-                setActiveId(tab.id)
-              }}
-              onKeyDown={(event) => {
-                handleTabKeyDown(event, index)
-              }}
-            >
-              {tab.label}
-            </button>
+        ))}
+      </div>
+      {active && (
+        <div
+          role="tabpanel"
+          id={`${idBase}-panel`}
+          aria-labelledby={`${idBase}-tab-${active.id}`}
+          className={styles.panel}
+        >
+          {active.note && <p className={styles.note}>{active.note}</p>}
+          {active.files.map((file) => (
+            <ExportFileView key={`${active.id}-${file.name}`} file={file} />
           ))}
         </div>
-        {active && (
-          <div
-            role="tabpanel"
-            id={`${titleId}-panel`}
-            aria-labelledby={`${titleId}-tab-${active.id}`}
-            className={styles.panel}
-          >
-            {active.note && <p className={styles.note}>{active.note}</p>}
-            {active.files.map((file) => (
-              <ExportFileView key={`${active.id}-${file.name}`} file={file} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+    </Modal>
   )
 }
