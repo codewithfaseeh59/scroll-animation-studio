@@ -1,5 +1,7 @@
 import { usePlayback } from '../../hooks/usePlayback'
 import { useTheme } from '../../hooks/useTheme'
+import { useEditorStore } from '../../store/editorStore'
+import { BrowserPreview } from '../BrowserPreview/BrowserPreview'
 import { Inspector } from '../Inspector/Inspector'
 import { LayerList } from '../LayerList/LayerList'
 import { Stage } from '../Stage/Stage'
@@ -10,6 +12,7 @@ import styles from './AppShell.module.css'
 export function AppShell() {
   const { theme, toggleTheme } = useTheme()
   usePlayback()
+  const previewMode = useEditorStore((state) => state.previewMode)
 
   return (
     <div className={styles.shell}>
@@ -20,7 +23,7 @@ export function AppShell() {
         <LayerList />
       </aside>
       <main className={styles.stage} aria-label="Stage">
-        <Stage />
+        {previewMode === 'browser' ? <BrowserPreview /> : <Stage />}
       </main>
       <aside className={styles.inspector} aria-label="Inspector">
         <Inspector />

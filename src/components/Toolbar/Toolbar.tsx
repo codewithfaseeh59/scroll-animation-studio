@@ -12,6 +12,8 @@ interface ToolbarProps {
 export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
   const isPlaying = useEditorStore((state) => state.isPlaying)
   const togglePlay = useEditorStore((state) => state.togglePlay)
+  const previewMode = useEditorStore((state) => state.previewMode)
+  const setPreviewMode = useEditorStore((state) => state.setPreviewMode)
   const [exportOpen, setExportOpen] = useState(false)
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
 
@@ -20,6 +22,16 @@ export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
       <h1 className={styles.title}>ScrollStudio</h1>
       <button type="button" className={styles.button} onClick={togglePlay}>
         {isPlaying ? 'Pause preview' : 'Play preview'}
+      </button>
+      <button
+        type="button"
+        className={styles.button}
+        aria-pressed={previewMode === 'browser'}
+        onClick={() => {
+          setPreviewMode(previewMode === 'browser' ? 'editor' : 'browser')
+        }}
+      >
+        Browser preview
       </button>
       <button
         type="button"

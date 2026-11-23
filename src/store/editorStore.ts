@@ -23,7 +23,11 @@ export interface EditorData {
   playhead: number
   /** Whether the preview is playing on its own. Not part of undo/redo. */
   isPlaying: boolean
+  /** What the middle of the editor shows: the editable stage or the real exported CSS. */
+  previewMode: PreviewMode
 }
+
+export type PreviewMode = 'editor' | 'browser'
 
 export interface EditorActions {
   /** Selects a layer, or nothing. Clears the keyframe selection. */
@@ -35,6 +39,8 @@ export interface EditorActions {
   play: () => void
   pause: () => void
   togglePlay: () => void
+  /** Switches between the editor stage and the browser preview. The browser preview stops playback. */
+  setPreviewMode: (mode: PreviewMode) => void
   /** Adds the layer and selects it. */
   addLayer: (layer: Layer) => void
   removeLayer: (layerId: string) => void
@@ -62,6 +68,7 @@ export function createInitialData(project: Project = ops.createProject()): Edito
     selectedKeyframeId: null,
     playhead: 0,
     isPlaying: false,
+    previewMode: 'editor',
   }
 }
 
@@ -132,6 +139,12 @@ export const useEditorStore = create<EditorState>()((set) => {
     },
     pause: () => {
       set({ isPlaying: false })
+    },
+    setPreviewMode: (mode) => {
+      set((state) => ({
+        previewMode: mode,
+        isPlaying: mode === 'browser' ? false : state.isPlaying,
+      }))
     },
     togglePlay: () => {
       const { isPlaying, play, pause } = useEditorStore.getState()
