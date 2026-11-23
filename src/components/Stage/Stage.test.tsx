@@ -62,7 +62,7 @@ describe('Stage', () => {
     expect(order).toEqual(['a', 'b', 'c'])
   })
 
-  it('renders no image element while the image has no source', () => {
+  it('renders a placeholder instead of an image while the source is empty', () => {
     load({ ...createProject(), layers: [makeLayer('a', 'image')] })
     render(<Stage />)
     expect(screen.queryByRole('img')).not.toBeInTheDocument()

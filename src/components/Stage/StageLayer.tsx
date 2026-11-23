@@ -20,9 +20,12 @@ export function StageLayer({ layer, progress }: StageLayerProps) {
         </div>
       )}
       {layer.type === 'rect' && <div className={styles.fill} style={content} />}
-      {layer.type === 'image' && layer.style.src !== '' && (
-        <img className={styles.image} style={content} src={layer.style.src} alt={layer.name} />
-      )}
+      {layer.type === 'image' &&
+        (layer.style.src === '' ? (
+          <div className={styles.placeholder} style={content} data-image-placeholder="" />
+        ) : (
+          <img className={styles.image} style={content} src={layer.style.src} alt={layer.name} />
+        ))}
     </div>
   )
 }

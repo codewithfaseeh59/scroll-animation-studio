@@ -7,6 +7,7 @@ import {
   type Layer,
   type LayerBase,
   type LayerStyle,
+  type LayerType,
   type Project,
 } from './types'
 
@@ -41,6 +42,39 @@ export function createProject(): Project {
     aspectRatio: { width: 16, height: 9 },
     layers: [],
   }
+}
+
+export const LAYER_TYPE_LABELS: Record<LayerType, string> = {
+  rect: 'Rectangle',
+  text: 'Text',
+  image: 'Image',
+}
+
+const LAYER_DEFAULTS: Record<LayerType, Pick<Layer, 'base' | 'style'>> = {
+  rect: {
+    base: { x: 30, y: 30, width: 40, height: 40 },
+    style: { color: '#4f46e5', text: '', fontSize: 16, src: '', radius: 0 },
+  },
+  text: {
+    base: { x: 20, y: 40, width: 60, height: 20 },
+    style: { color: '#f97316', text: 'Text', fontSize: 48, src: '', radius: 0 },
+  },
+  image: {
+    base: { x: 25, y: 25, width: 50, height: 50 },
+    style: { color: '#000000', text: '', fontSize: 16, src: '', radius: 0 },
+  },
+}
+
+/** A new layer of the given type with sensible defaults and no keyframes. */
+export function createLayer(id: string, type: LayerType, name: string): Layer {
+  const { base, style } = LAYER_DEFAULTS[type]
+  return { id, name, type, base: { ...base }, style: { ...style }, keyframes: [] }
+}
+
+/** "Rectangle 2" when the project already has one rectangle. */
+export function nextLayerName(project: Project, type: LayerType): string {
+  const count = project.layers.filter((layer) => layer.type === type).length
+  return `${LAYER_TYPE_LABELS[type]} ${String(count + 1)}`
 }
 
 export function getLayer(project: Project, layerId: string): Layer | undefined {
