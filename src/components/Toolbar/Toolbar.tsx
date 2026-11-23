@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useProjectIO } from '../../hooks/useProjectIO'
 import type { Theme } from '../../hooks/useTheme'
 import { useEditorStore } from '../../store/editorStore'
 import { ExportDialog } from '../ExportDialog/ExportDialog'
@@ -15,6 +16,8 @@ export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
   const previewMode = useEditorStore((state) => state.previewMode)
   const setPreviewMode = useEditorStore((state) => state.setPreviewMode)
   const [exportOpen, setExportOpen] = useState(false)
+  const fileInput = useRef<HTMLInputElement>(null)
+  const { importFile, copyShareLink } = useProjectIO()
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
 
   return (
@@ -32,6 +35,36 @@ export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
         }}
       >
         Browser preview
+      </button>
+      <button
+        type="button"
+        className={styles.button}
+        onClick={() => {
+          fileInput.current?.click()
+        }}
+      >
+        Import
+      </button>
+      <input
+        ref={fileInput}
+        type="file"
+        accept=".json,application/json"
+        aria-label="Project JSON file"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          event.target.value = ''
+          if (file) void importFile(file)
+        }}
+      />
+      <button
+        type="button"
+        className={styles.button}
+        onClick={() => {
+          void copyShareLink()
+        }}
+      >
+        Share
       </button>
       <button
         type="button"
