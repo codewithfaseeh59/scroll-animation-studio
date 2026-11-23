@@ -1,17 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { ResolvedValues } from '../../engine/interpolate'
 import type { Layer } from '../../engine/types'
-
-/**
- * Font sizes and radii are measured against a reference stage that is 1000
- * units wide, so 32 means 3.2% of the stage width (3.2cqw). The stage is a
- * size container, which makes the layout scale with the stage.
- */
-const STAGE_UNITS = 1000
-
-function stageUnits(value: number): string {
-  return `${String((value * 100) / STAGE_UNITS)}cqw`
-}
+import { toStageUnits as stageUnits } from '../../engine/units'
 
 /**
  * Position, size and transform of a layer's box. The individual transform
