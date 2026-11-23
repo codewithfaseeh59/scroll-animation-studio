@@ -1,4 +1,5 @@
 import { useTheme } from '../../hooks/useTheme'
+import { LayerList } from '../LayerList/LayerList'
 import { Stage } from '../Stage/Stage'
 import { Toolbar } from '../Toolbar/Toolbar'
 import styles from './AppShell.module.css'
@@ -11,7 +12,9 @@ export function AppShell() {
       <div className={styles.toolbar}>
         <Toolbar theme={theme} onToggleTheme={toggleTheme} />
       </div>
-      <aside className={styles.layers} aria-label="Layers" />
+      <aside className={styles.layers} aria-label="Layers">
+        <LayerList />
+      </aside>
       <main className={styles.stage} aria-label="Stage">
         <Stage />
       </main>

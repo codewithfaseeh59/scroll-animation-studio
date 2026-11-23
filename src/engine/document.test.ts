@@ -1,7 +1,9 @@
 import {
   addLayer,
+  createLayer,
   createProject,
   getLayer,
+  nextLayerName,
   removeKeyframe,
   removeLayer,
   updateKeyframe,
@@ -229,5 +231,61 @@ describe('results stay valid projects', () => {
     project = updateKeyframe(project, 'a', 'k2', { progress: 0.3 })
     project = updateLayer(project, 'a', { base: { width: 55 } })
     expect(validateProject(project).ok).toBe(true)
+  })
+})
+
+describe('createLayer', () => {
+  it('creates a rectangle with its defaults and no keyframes', () => {
+    expect(createLayer('r1', 'rect', 'Box')).toEqual({
+      id: 'r1',
+      name: 'Box',
+      type: 'rect',
+      base: { x: 30, y: 30, width: 40, height: 40 },
+      style: { color: '#4f46e5', text: '', fontSize: 16, src: '', radius: 0 },
+      keyframes: [],
+    })
+  })
+
+  it('creates a text layer showing "Text" at font size 48', () => {
+    const layer = createLayer('t1', 'text', 'Title')
+    expect(layer.base).toEqual({ x: 20, y: 40, width: 60, height: 20 })
+    expect(layer.style.text).toBe('Text')
+    expect(layer.style.fontSize).toBe(48)
+  })
+
+  it('creates an image layer with an empty source', () => {
+    const layer = createLayer('i1', 'image', 'Photo')
+    expect(layer.base).toEqual({ x: 25, y: 25, width: 50, height: 50 })
+    expect(layer.style.src).toBe('')
+  })
+
+  it('every type produces a layer that passes validation', () => {
+    let project = createProject()
+    project = addLayer(project, createLayer('a', 'rect', 'A'))
+    project = addLayer(project, createLayer('b', 'text', 'B'))
+    project = addLayer(project, createLayer('c', 'image', 'C'))
+    expect(validateProject(project).ok).toBe(true)
+  })
+
+  it('does not share base or style objects between layers', () => {
+    const first = createLayer('a', 'rect', 'A')
+    const second = createLayer('b', 'rect', 'B')
+    expect(first.base).not.toBe(second.base)
+    expect(first.style).not.toBe(second.style)
+  })
+})
+
+describe('nextLayerName', () => {
+  it('counts the layers of the same type: Rectangle 1, then Rectangle 2, Text 2', () => {
+    const empty = createProject()
+    expect(nextLayerName(empty, 'rect')).toBe('Rectangle 1')
+    const project = projectWith([
+      createLayer('a', 'rect', 'Rectangle 1'),
+      createLayer('b', 'text', 'Text 1'),
+      createLayer('c', 'text', 'Text 2'),
+    ])
+    expect(nextLayerName(project, 'rect')).toBe('Rectangle 2')
+    expect(nextLayerName(project, 'text')).toBe('Text 3')
+    expect(nextLayerName(project, 'image')).toBe('Image 1')
   })
 })
