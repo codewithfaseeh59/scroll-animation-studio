@@ -1,5 +1,5 @@
 import type { Layer } from '../types'
-import { escapeHtml, formatNumber, layerSlugs, safeCssColor } from './shared'
+import { camelCase, escapeHtml, formatNumber, indent, layerSlugs, safeCssColor } from './shared'
 
 function named(id: string, name: string): Layer {
   return {
@@ -59,6 +59,30 @@ describe('escapeHtml', () => {
     expect(escapeHtml('<b class="x">Tom & Jerry</b>')).toBe(
       '&lt;b class=&quot;x&quot;&gt;Tom &amp; Jerry&lt;/b&gt;',
     )
+  })
+})
+
+describe('indent', () => {
+  it('indents every non-empty line by two spaces per level', () => {
+    expect(indent('a\n\nb', 2)).toBe('    a\n\n    b')
+  })
+
+  it('level 0 changes nothing', () => {
+    expect(indent('a\nb', 0)).toBe('a\nb')
+  })
+})
+
+describe('camelCase', () => {
+  it('joins hyphenated words: hero-title becomes heroTitle', () => {
+    expect(camelCase('hero-title')).toBe('heroTitle')
+  })
+
+  it('keeps digits and handles several hyphens: box-2-2 becomes box22', () => {
+    expect(camelCase('box-2-2')).toBe('box22')
+  })
+
+  it('leaves a single word alone', () => {
+    expect(camelCase('box')).toBe('box')
   })
 })
 

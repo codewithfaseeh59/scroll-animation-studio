@@ -2,7 +2,7 @@ import { easeToCss } from '../ease'
 import { DEFAULT_VALUES, interpolateLayer, type ResolvedValues } from '../interpolate'
 import type { AnimatableProperty, Layer, Project } from '../types'
 import { toStageUnits } from '../units'
-import { escapeHtml, formatNumber, layerSlugs, safeCssColor } from './shared'
+import { escapeHtml, formatNumber, indent, layerSlugs, safeCssColor } from './shared'
 
 /**
  * Each CSS property that carries animation. translateX and translateY share
@@ -92,14 +92,6 @@ function planLayer(layer: Layer): ChannelPlan[] {
 
 function percentOf(progress: number): string {
   return `${formatNumber(progress * 100)}%`
-}
-
-function indent(text: string, level: number): string {
-  const pad = '  '.repeat(level)
-  return text
-    .split('\n')
-    .map((line) => (line === '' ? line : pad + line))
-    .join('\n')
 }
 
 function rule(selector: string, declarations: readonly string[]): string {
