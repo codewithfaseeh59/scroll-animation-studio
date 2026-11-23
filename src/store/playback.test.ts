@@ -48,3 +48,33 @@ describe('playback state', () => {
     expect(store.getState().isPlaying).toBe(false)
   })
 })
+
+describe('preview mode', () => {
+  it('starts in the editor', () => {
+    expect(store.getState().previewMode).toBe('editor')
+  })
+
+  it('switches to the browser preview and back', () => {
+    store.getState().setPreviewMode('browser')
+    expect(store.getState().previewMode).toBe('browser')
+    store.getState().setPreviewMode('editor')
+    expect(store.getState().previewMode).toBe('editor')
+  })
+
+  it('the browser preview stops playback', () => {
+    store.getState().play()
+    store.getState().setPreviewMode('browser')
+    expect(store.getState().isPlaying).toBe(false)
+  })
+
+  it('going back to the editor does not start playback', () => {
+    store.getState().setPreviewMode('browser')
+    store.getState().setPreviewMode('editor')
+    expect(store.getState().isPlaying).toBe(false)
+  })
+
+  it('is not part of undo', () => {
+    store.getState().setPreviewMode('browser')
+    expect(selectCanUndo(store.getState())).toBe(false)
+  })
+})

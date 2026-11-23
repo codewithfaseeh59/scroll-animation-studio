@@ -33,6 +33,19 @@ describe('Toolbar', () => {
     expect(screen.getByRole('button', { name: 'Play preview' })).toBeInTheDocument()
   })
 
+  it('toggles the browser preview and shows whether it is on', async () => {
+    useEditorStore.setState(createInitialData())
+    render(<Toolbar theme="light" onToggleTheme={() => undefined} />)
+    const button = screen.getByRole('button', { name: 'Browser preview' })
+    expect(button).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(button)
+    expect(useEditorStore.getState().previewMode).toBe('browser')
+    expect(button).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(button)
+    expect(useEditorStore.getState().previewMode).toBe('editor')
+    expect(button).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('opens the export dialog, and Escape closes it and returns focus to Export', async () => {
     useEditorStore.setState(createInitialData())
     render(<Toolbar theme="light" onToggleTheme={() => undefined} />)
