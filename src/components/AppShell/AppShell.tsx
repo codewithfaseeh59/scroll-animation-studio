@@ -2,6 +2,7 @@ import { useTheme } from '../../hooks/useTheme'
 import { Inspector } from '../Inspector/Inspector'
 import { LayerList } from '../LayerList/LayerList'
 import { Stage } from '../Stage/Stage'
+import { Timeline } from '../Timeline/Timeline'
 import { Toolbar } from '../Toolbar/Toolbar'
 import styles from './AppShell.module.css'
 
@@ -22,7 +23,9 @@ export function AppShell() {
       <aside className={styles.inspector} aria-label="Inspector">
         <Inspector />
       </aside>
-      <section className={styles.timeline} aria-label="Timeline" />
+      <section className={styles.timeline} aria-label="Timeline">
+        <Timeline />
+      </section>
     </div>
   )
 }
