@@ -29,7 +29,7 @@ describe('LayerList', () => {
     expect(layers).toHaveLength(1)
     expect(layers[0]?.type).toBe('rect')
     expect(layers[0]?.name).toBe('Rectangle 1')
-    expect(screen.getByRole('button', { name: /Rectangle 1/ })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: /^Rectangle 1/ })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
@@ -64,11 +64,11 @@ describe('LayerList', () => {
     render(<LayerList />)
     await userEvent.click(screen.getByRole('button', { name: 'Add rectangle' }))
     await userEvent.click(screen.getByRole('button', { name: 'Add text' }))
-    await userEvent.click(screen.getByRole('button', { name: /Rectangle 1/ }))
-    expect(screen.getByRole('button', { name: /Rectangle 1/ })).toHaveAttribute(
+    await userEvent.click(screen.getByRole('button', { name: /^Rectangle 1/ }))
+    expect(screen.getByRole('button', { name: /^Rectangle 1/ })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
-    expect(screen.getByRole('button', { name: /Text 1/ })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /^Text 1/ })).toHaveAttribute('aria-pressed', 'false')
   })
 })

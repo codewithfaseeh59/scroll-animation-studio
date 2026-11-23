@@ -31,6 +31,7 @@ export function AnimationFields({ layer }: { layer: Layer }) {
   const playhead = useEditorStore((state) => state.playhead)
   const selectedKeyframeId = useEditorStore((state) => state.selectedKeyframeId)
   const autoKey = useEditorStore((state) => state.autoKey)
+  const addKeyframe = useEditorStore((state) => state.addKeyframe)
   const removeKeyframe = useEditorStore((state) => state.removeKeyframe)
   const values = interpolateLayer(layer, playhead)
 
@@ -57,7 +58,7 @@ export function AnimationFields({ layer }: { layer: Layer }) {
           type="button"
           className={styles.button}
           onClick={() => {
-            autoKey(layer.id, values)
+            addKeyframe(layer.id)
           }}
         >
           Add keyframe

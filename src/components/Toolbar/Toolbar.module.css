@@ -26,3 +26,10 @@
 .button:hover {
   border-color: var(--color-accent);
 }
+
+/* A pressed button is also bold and underlined, so it does not rely on colour. */
+.button[aria-pressed='true'] {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 -3px 0 var(--color-accent);
+  font-weight: 700;
+}

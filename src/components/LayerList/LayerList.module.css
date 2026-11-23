@@ -19,7 +19,8 @@
 }
 
 .button,
-.item {
+.item,
+.delete {
   padding: var(--space-1) var(--space-3);
   background: var(--color-surface-raised);
   color: var(--color-text);
@@ -31,7 +32,8 @@
 }
 
 .button:hover,
-.item:hover {
+.item:hover,
+.delete:hover {
   border-color: var(--color-accent);
 }
 
@@ -44,16 +46,31 @@
   list-style: none;
 }
 
-.item {
+.row {
   display: flex;
-  justify-content: space-between;
-  width: 100%;
+  gap: var(--space-1);
 }
 
+.item {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.delete {
+  flex: none;
+  padding: var(--space-1) var(--space-2);
+  text-align: center;
+}
+
+/* The selected layer is also bold and has a bar on its left, so it does not rely on colour. */
 .item[aria-pressed='true'] {
   background: var(--color-accent);
   color: var(--color-accent-contrast);
   border-color: var(--color-accent);
+  box-shadow: inset 4px 0 0 var(--color-accent-contrast);
+  font-weight: 700;
 }
 
 .type {

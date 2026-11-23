@@ -1,4 +1,4 @@
-import { canRedo, canUndo, commit, createHistory, redo, undo, type History } from './history'
+import { amend, canRedo, canUndo, commit, createHistory, redo, undo, type History } from './history'
 
 function deepFreeze<T>(history: History<T>): History<T> {
   Object.freeze(history.past)
@@ -119,5 +119,37 @@ describe('depth limit', () => {
     )
     expect(history.past).toHaveLength(100)
     expect(history.past[0]).toBe(50)
+  })
+})
+
+describe('amend', () => {
+  it('replaces the present without adding an undo step: commit 1, amend 2, amend 3 undoes to 0', () => {
+    let history = commit(createHistory(0), 1)
+    history = amend(history, 2)
+    history = amend(history, 3)
+    expect(history.present).toBe(3)
+    expect(history.past).toEqual([0])
+    expect(undo(history).present).toBe(0)
+  })
+
+  it('clears the redo stack', () => {
+    let history = commitAll(createHistory(0), [1, 2])
+    history = undo(history)
+    expect(canRedo(history)).toBe(true)
+    history = amend(history, 9)
+    expect(canRedo(history)).toBe(false)
+    expect(history.present).toBe(9)
+  })
+
+  it('returns the same history when the state is the same', () => {
+    const history = commit(createHistory(0), 1)
+    expect(amend(history, 1)).toBe(history)
+  })
+
+  it('does not mutate the history it is given', () => {
+    const original = deepFreeze(commit(createHistory(0), 1))
+    const next = amend(original, 2)
+    expect(original.present).toBe(1)
+    expect(next).not.toBe(original)
   })
 })

@@ -52,9 +52,12 @@
   cursor: pointer;
 }
 
+/* The selected layer is also bold and has a bar on its left, so it does not rely on colour. */
 .label[aria-pressed='true'] {
   background: var(--color-accent);
   color: var(--color-accent-contrast);
+  box-shadow: inset 4px 0 0 var(--color-accent-contrast);
+  font-weight: 700;
 }
 
 .tracks {
@@ -96,6 +99,7 @@
 
 .track[data-selected] {
   background: var(--color-surface-raised);
+  box-shadow: inset 4px 0 0 var(--color-accent);
 }
 
 .diamond {
@@ -103,6 +107,7 @@
   top: 50%;
   width: 12px;
   height: 12px;
+  padding: 0;
   transform: translate(-50%, -50%) rotate(45deg);
   cursor: ew-resize;
   background: var(--color-accent);
@@ -125,7 +130,9 @@
   color: var(--color-text-muted);
 }
 
+/* The selected keyframe has a ring around it as well as a different colour. */
 .diamond[data-selected] {
   background: var(--color-text);
   border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-text);
 }

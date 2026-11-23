@@ -74,8 +74,8 @@ describe('Timeline layout', () => {
     const { container } = render(<Timeline />)
     const diamonds = [...container.querySelectorAll<HTMLElement>('[data-keyframe-id]')]
     expect(diamonds.map((diamond) => diamond.style.left)).toEqual(['25%', '75%'])
-    expect(screen.getByRole('img', { name: 'Keyframe at 25%' })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Keyframe at 75%' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Box: keyframe at 25%' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Box: keyframe at 75%' })).toBeInTheDocument()
   })
 })
 
