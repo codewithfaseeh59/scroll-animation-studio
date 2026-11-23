@@ -3,6 +3,7 @@ import { useProjectIO } from '../../hooks/useProjectIO'
 import type { Theme } from '../../hooks/useTheme'
 import { useEditorStore } from '../../store/editorStore'
 import { ExportDialog } from '../ExportDialog/ExportDialog'
+import { NewProjectDialog } from '../NewProjectDialog/NewProjectDialog'
 import styles from './Toolbar.module.css'
 
 interface ToolbarProps {
@@ -16,6 +17,7 @@ export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
   const previewMode = useEditorStore((state) => state.previewMode)
   const setPreviewMode = useEditorStore((state) => state.setPreviewMode)
   const [exportOpen, setExportOpen] = useState(false)
+  const [newProjectOpen, setNewProjectOpen] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
   const { importFile, copyShareLink } = useProjectIO()
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
@@ -23,6 +25,15 @@ export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
   return (
     <header className={styles.toolbar}>
       <h1 className={styles.title}>ScrollStudio</h1>
+      <button
+        type="button"
+        className={styles.button}
+        onClick={() => {
+          setNewProjectOpen(true)
+        }}
+      >
+        New project
+      </button>
       <button type="button" className={styles.button} onClick={togglePlay}>
         {isPlaying ? 'Pause preview' : 'Play preview'}
       </button>
@@ -78,6 +89,13 @@ export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
       <button type="button" className={styles.button} onClick={onToggleTheme}>
         Switch to {nextTheme} theme
       </button>
+      {newProjectOpen && (
+        <NewProjectDialog
+          onClose={() => {
+            setNewProjectOpen(false)
+          }}
+        />
+      )}
       {exportOpen && (
         <ExportDialog
           onClose={() => {
