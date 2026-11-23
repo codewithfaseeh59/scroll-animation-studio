@@ -4,6 +4,7 @@ import type { Theme } from '../../hooks/useTheme'
 import { useEditorStore } from '../../store/editorStore'
 import { ExportDialog } from '../ExportDialog/ExportDialog'
 import { NewProjectDialog } from '../NewProjectDialog/NewProjectDialog'
+import { ShortcutsDialog } from '../ShortcutsDialog/ShortcutsDialog'
 import styles from './Toolbar.module.css'
 
 interface ToolbarProps {
@@ -18,6 +19,7 @@ export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
   const setPreviewMode = useEditorStore((state) => state.setPreviewMode)
   const [exportOpen, setExportOpen] = useState(false)
   const [newProjectOpen, setNewProjectOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
   const { importFile, copyShareLink } = useProjectIO()
   const nextTheme = theme === 'dark' ? 'light' : 'dark'
@@ -86,9 +88,25 @@ export function Toolbar({ theme, onToggleTheme }: ToolbarProps) {
       >
         Export
       </button>
+      <button
+        type="button"
+        className={styles.button}
+        onClick={() => {
+          setShortcutsOpen(true)
+        }}
+      >
+        Shortcuts
+      </button>
       <button type="button" className={styles.button} onClick={onToggleTheme}>
         Switch to {nextTheme} theme
       </button>
+      {shortcutsOpen && (
+        <ShortcutsDialog
+          onClose={() => {
+            setShortcutsOpen(false)
+          }}
+        />
+      )}
       {newProjectOpen && (
         <NewProjectDialog
           onClose={() => {

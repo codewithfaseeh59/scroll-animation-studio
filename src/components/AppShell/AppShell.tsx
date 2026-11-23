@@ -1,4 +1,5 @@
 import { usePlayback } from '../../hooks/usePlayback'
+import { useShortcuts } from '../../hooks/useShortcuts'
 import { useTheme } from '../../hooks/useTheme'
 import { useEditorStore } from '../../store/editorStore'
 import { BrowserPreview } from '../BrowserPreview/BrowserPreview'
@@ -13,6 +14,7 @@ import styles from './AppShell.module.css'
 export function AppShell() {
   const { theme, toggleTheme } = useTheme()
   usePlayback()
+  useShortcuts()
   const previewMode = useEditorStore((state) => state.previewMode)
 
   return (

@@ -31,6 +31,16 @@ export function commit<T>(history: History<T>, next: T): History<T> {
   }
 }
 
+/**
+ * Changes the current state without adding an undo step: it takes the place of
+ * the state the last commit made, so a run of small edits (such as nudging a
+ * layer with a held key) undoes in one step. The redo stack is cleared.
+ */
+export function amend<T>(history: History<T>, next: T): History<T> {
+  if (Object.is(next, history.present)) return history
+  return { ...history, present: next, future: [] }
+}
+
 export function canUndo<T>(history: History<T>): boolean {
   return history.past.length > 0
 }

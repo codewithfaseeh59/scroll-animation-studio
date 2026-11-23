@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import * as ops from '../engine/document'
 import {
+  amend,
   canRedo,
   canUndo,
   commit,
@@ -9,9 +10,14 @@ import {
   undo,
   type History,
 } from '../engine/history'
+import { interpolateLayer } from '../engine/interpolate'
 import type { Keyframe, KeyframeValues, Layer, Project } from '../engine/types'
 import { clamp } from '../lib/clamp'
 import { createId } from '../lib/id'
+import { roundTo } from '../lib/round'
+
+/** Small edits of the same kind that come within this many milliseconds are one undo step. */
+export const MERGE_WINDOW_MS = 1000
 
 export interface EditorData {
   /** The project plus its undo/redo stacks. Only document edits go through it. */
@@ -27,6 +33,8 @@ export interface EditorData {
   previewMode: PreviewMode
   /** A short message for the user, such as the result of an import. Null when there is none. */
   notice: string | null
+  /** The last edit that later edits of the same kind may join, so a burst is one undo step. */
+  mergeable: { key: string; at: number } | null
 }
 
 export type PreviewMode = 'editor' | 'browser'
@@ -55,6 +63,12 @@ export interface EditorActions {
    * there, or updated when one already sits at that progress.
    */
   autoKey: (layerId: string, values: KeyframeValues) => void
+  /** Adds a keyframe at the playhead that holds all of the layer's values at that moment. */
+  addKeyframe: (layerId: string) => void
+  /** Moves the layer by dx and dy percent of the stage. A burst of moves is one undo step. */
+  nudgeLayer: (layerId: string, dx: number, dy: number) => void
+  /** Moves a keyframe along the timeline by delta of the scene. A burst is one undo step. */
+  shiftKeyframe: (layerId: string, keyframeId: string, delta: number) => void
   undo: () => void
   redo: () => void
   /** Replaces the whole project and clears history, selection and playhead. */
@@ -75,6 +89,7 @@ export function createInitialData(project: Project = ops.createProject()): Edito
     isPlaying: false,
     previewMode: 'editor',
     notice: null,
+    mergeable: null,
   }
 }
 
@@ -105,7 +120,22 @@ export const useEditorStore = create<EditorState>()((set) => {
     set((state) => {
       const history = commit(state.history, change(state.history.present))
       if (history === state.history) return state
-      return { history, ...validSelection(history.present, state) }
+      return { history, mergeable: null, ...validSelection(history.present, state) }
+    })
+  }
+
+  /** Like edit, but an edit with the same key shortly after the last one joins it. */
+  const mergedEdit = (key: string, change: (project: Project) => Project): void => {
+    set((state) => {
+      const next = change(state.history.present)
+      if (next === state.history.present) return state
+      const now = Date.now()
+      const merging =
+        state.mergeable !== null &&
+        state.mergeable.key === key &&
+        now - state.mergeable.at <= MERGE_WINDOW_MS
+      const history = merging ? amend(state.history, next) : commit(state.history, next)
+      return { history, mergeable: { key, at: now }, ...validSelection(history.present, state) }
     })
   }
 
@@ -113,7 +143,7 @@ export const useEditorStore = create<EditorState>()((set) => {
     set((state) => {
       const history = move(state.history)
       if (history === state.history) return state
-      return { history, ...validSelection(history.present, state) }
+      return { history, mergeable: null, ...validSelection(history.present, state) }
     })
   }
 
@@ -162,7 +192,7 @@ export const useEditorStore = create<EditorState>()((set) => {
       set((state) => {
         const history = commit(state.history, ops.addLayer(state.history.present, layer))
         if (history === state.history) return state
-        return { history, selectedLayerId: layer.id, selectedKeyframeId: null }
+        return { history, mergeable: null, selectedLayerId: layer.id, selectedKeyframeId: null }
       })
     },
     removeLayer: (layerId) => {
@@ -190,6 +220,31 @@ export const useEditorStore = create<EditorState>()((set) => {
           ease: 'linear',
         }),
       )
+    },
+
+    addKeyframe: (layerId) => {
+      const { history, playhead, autoKey } = useEditorStore.getState()
+      const layer = ops.getLayer(history.present, layerId)
+      if (layer) autoKey(layerId, interpolateLayer(layer, playhead))
+    },
+    nudgeLayer: (layerId, dx, dy) => {
+      mergedEdit(`nudge:${layerId}`, (project) => {
+        const layer = ops.getLayer(project, layerId)
+        if (!layer || (dx === 0 && dy === 0)) return project
+        const { x, y } = layer.base
+        return ops.updateLayer(project, layerId, {
+          base: { x: roundTo(x + dx, 2), y: roundTo(y + dy, 2) },
+        })
+      })
+    },
+    shiftKeyframe: (layerId, keyframeId, delta) => {
+      mergedEdit(`shift:${keyframeId}`, (project) => {
+        const keyframe = ops.getLayer(project, layerId)?.keyframes.find((k) => k.id === keyframeId)
+        if (!keyframe) return project
+        const progress = clamp(roundTo(keyframe.progress + delta, 3), 0, 1)
+        if (progress === keyframe.progress) return project
+        return ops.updateKeyframe(project, layerId, keyframeId, { progress })
+      })
     },
 
     undo: () => {
