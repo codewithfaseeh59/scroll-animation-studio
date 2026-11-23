@@ -21,6 +21,8 @@ export interface EditorData {
   selectedKeyframeId: string | null
   /** Scroll progress of the scrub preview, 0..1. Not part of undo/redo. */
   playhead: number
+  /** Whether the preview is playing on its own. Not part of undo/redo. */
+  isPlaying: boolean
 }
 
 export interface EditorActions {
@@ -29,6 +31,10 @@ export interface EditorActions {
   /** Selects a keyframe together with its layer. Unknown ids are ignored. */
   selectKeyframe: (layerId: string, keyframeId: string) => void
   setPlayhead: (progress: number) => void
+  /** Starts playing the preview. From the end of the scene it starts again at 0. */
+  play: () => void
+  pause: () => void
+  togglePlay: () => void
   /** Adds the layer and selects it. */
   addLayer: (layer: Layer) => void
   removeLayer: (layerId: string) => void
@@ -55,6 +61,7 @@ export function createInitialData(project: Project = ops.createProject()): Edito
     selectedLayerId: null,
     selectedKeyframeId: null,
     playhead: 0,
+    isPlaying: false,
   }
 }
 
@@ -119,6 +126,17 @@ export const useEditorStore = create<EditorState>()((set) => {
     },
     setPlayhead: (progress) => {
       set({ playhead: clamp(progress, 0, 1) })
+    },
+    play: () => {
+      set((state) => ({ isPlaying: true, playhead: state.playhead >= 1 ? 0 : state.playhead }))
+    },
+    pause: () => {
+      set({ isPlaying: false })
+    },
+    togglePlay: () => {
+      const { isPlaying, play, pause } = useEditorStore.getState()
+      if (isPlaying) pause()
+      else play()
     },
 
     addLayer: (layer) => {

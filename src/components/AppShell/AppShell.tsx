@@ -1,3 +1,4 @@
+import { usePlayback } from '../../hooks/usePlayback'
 import { useTheme } from '../../hooks/useTheme'
 import { Inspector } from '../Inspector/Inspector'
 import { LayerList } from '../LayerList/LayerList'
@@ -8,6 +9,7 @@ import styles from './AppShell.module.css'
 
 export function AppShell() {
   const { theme, toggleTheme } = useTheme()
+  usePlayback()
 
   return (
     <div className={styles.shell}>
