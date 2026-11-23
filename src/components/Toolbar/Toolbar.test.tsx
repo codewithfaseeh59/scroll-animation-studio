@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { createInitialData, useEditorStore } from '../../store/editorStore'
 import { Toolbar } from './Toolbar'
 
 describe('Toolbar', () => {
@@ -20,5 +21,15 @@ describe('Toolbar', () => {
     render(<Toolbar theme="light" onToggleTheme={onToggleTheme} />)
     await userEvent.click(screen.getByRole('button', { name: 'Switch to dark theme' }))
     expect(onToggleTheme).toHaveBeenCalledTimes(1)
+  })
+
+  it('offers to play the preview, and to pause it while it plays', async () => {
+    useEditorStore.setState(createInitialData())
+    render(<Toolbar theme="light" onToggleTheme={() => undefined} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Play preview' }))
+    expect(useEditorStore.getState().isPlaying).toBe(true)
+    await userEvent.click(screen.getByRole('button', { name: 'Pause preview' }))
+    expect(useEditorStore.getState().isPlaying).toBe(false)
+    expect(screen.getByRole('button', { name: 'Play preview' })).toBeInTheDocument()
   })
 })
