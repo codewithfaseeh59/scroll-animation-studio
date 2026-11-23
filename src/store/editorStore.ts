@@ -25,6 +25,8 @@ export interface EditorData {
   isPlaying: boolean
   /** What the middle of the editor shows: the editable stage or the real exported CSS. */
   previewMode: PreviewMode
+  /** A short message for the user, such as the result of an import. Null when there is none. */
+  notice: string | null
 }
 
 export type PreviewMode = 'editor' | 'browser'
@@ -57,6 +59,9 @@ export interface EditorActions {
   redo: () => void
   /** Replaces the whole project and clears history, selection and playhead. */
   loadProject: (project: Project) => void
+  /** Replaces the whole project as one edit, so it can be undone. */
+  replaceProject: (project: Project) => void
+  setNotice: (message: string | null) => void
 }
 
 export type EditorState = EditorData & EditorActions
@@ -69,6 +74,7 @@ export function createInitialData(project: Project = ops.createProject()): Edito
     playhead: 0,
     isPlaying: false,
     previewMode: 'editor',
+    notice: null,
   }
 }
 
@@ -194,6 +200,12 @@ export const useEditorStore = create<EditorState>()((set) => {
     },
     loadProject: (project) => {
       set(createInitialData(project))
+    },
+    replaceProject: (project) => {
+      edit(() => project)
+    },
+    setNotice: (message) => {
+      set({ notice: message })
     },
   }
 })

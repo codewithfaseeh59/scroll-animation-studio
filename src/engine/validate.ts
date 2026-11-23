@@ -14,10 +14,9 @@ import {
   type LayerType,
   type Project,
 } from './types'
+import { isRecord, type UnknownRecord } from '../lib/isRecord'
 
 export type ValidationResult = { ok: true; project: Project } | { ok: false; errors: string[] }
-
-type UnknownRecord = Record<string, unknown>
 
 interface NumberRule {
   min?: number
@@ -37,10 +36,6 @@ const VALUE_RULES: Record<AnimatableProperty, NumberRule> = {
   rotate: {},
   opacity: { min: 0, max: 1 },
   blur: { min: 0 },
-}
-
-function isRecord(value: unknown): value is UnknownRecord {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 class Reader {

@@ -4,6 +4,7 @@ import { useEditorStore } from '../../store/editorStore'
 import { BrowserPreview } from '../BrowserPreview/BrowserPreview'
 import { Inspector } from '../Inspector/Inspector'
 import { LayerList } from '../LayerList/LayerList'
+import { Notice } from '../Notice/Notice'
 import { Stage } from '../Stage/Stage'
 import { Timeline } from '../Timeline/Timeline'
 import { Toolbar } from '../Toolbar/Toolbar'
@@ -31,6 +32,7 @@ export function AppShell() {
       <section className={styles.timeline} aria-label="Timeline">
         <Timeline />
       </section>
+      <Notice />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { generateCss, generateMarkup } from '../../engine/codegen/css'
 import { generateHtml } from '../../engine/codegen/html'
 import { generateMotionReact } from '../../engine/codegen/motionReact'
+import { serializeProject } from '../../engine/serialize'
 import type { Project } from '../../engine/types'
 
 export interface ExportFile {
@@ -72,7 +73,7 @@ export function buildExportTabs(project: Project): ExportTab[] {
           name: 'project.json',
           label: 'Project',
           mime: 'application/json',
-          content: `${JSON.stringify(project, null, 2)}\n`,
+          content: serializeProject(project),
         },
       ],
     },
