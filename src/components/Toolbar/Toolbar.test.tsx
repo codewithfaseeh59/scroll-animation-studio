@@ -32,4 +32,15 @@ describe('Toolbar', () => {
     expect(useEditorStore.getState().isPlaying).toBe(false)
     expect(screen.getByRole('button', { name: 'Play preview' })).toBeInTheDocument()
   })
+
+  it('opens the export dialog, and Escape closes it and returns focus to Export', async () => {
+    useEditorStore.setState(createInitialData())
+    render(<Toolbar theme="light" onToggleTheme={() => undefined} />)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Export' }))
+    expect(screen.getByRole('dialog', { name: 'Export' })).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Export' })).toHaveFocus()
+  })
 })
