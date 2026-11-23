@@ -64,8 +64,9 @@ describe('Stage', () => {
 
   it('renders a placeholder instead of an image while the source is empty', () => {
     load({ ...createProject(), layers: [makeLayer('a', 'image')] })
-    render(<Stage />)
+    const { container } = render(<Stage />)
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(container.querySelector('[data-image-placeholder]')).toBeInTheDocument()
   })
 
   it('positions a layer from its base in percent', () => {

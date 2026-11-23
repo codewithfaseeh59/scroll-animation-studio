@@ -19,6 +19,20 @@
   border: 1px solid var(--color-border);
 }
 
+.layer {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.layer:active {
+  cursor: grabbing;
+}
+
+.layer[data-selected] {
+  outline: 2px solid var(--color-accent);
+}
+
 .fill,
 .image,
 .placeholder {
@@ -44,4 +58,23 @@
 .placeholder {
   background: var(--color-surface-raised);
   border: 2px dashed var(--color-border);
+}
+
+.guideVertical,
+.guideHorizontal {
+  position: absolute;
+  background: var(--color-accent);
+  pointer-events: none;
+}
+
+.guideVertical {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.guideHorizontal {
+  left: 0;
+  right: 0;
+  height: 1px;
 }
