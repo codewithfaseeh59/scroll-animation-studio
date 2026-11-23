@@ -1,4 +1,5 @@
 import { useTheme } from '../../hooks/useTheme'
+import { Inspector } from '../Inspector/Inspector'
 import { LayerList } from '../LayerList/LayerList'
 import { Stage } from '../Stage/Stage'
 import { Toolbar } from '../Toolbar/Toolbar'
@@ -18,7 +19,9 @@ export function AppShell() {
       <main className={styles.stage} aria-label="Stage">
         <Stage />
       </main>
-      <aside className={styles.inspector} aria-label="Inspector" />
+      <aside className={styles.inspector} aria-label="Inspector">
+        <Inspector />
+      </aside>
       <section className={styles.timeline} aria-label="Timeline" />
     </div>
   )
