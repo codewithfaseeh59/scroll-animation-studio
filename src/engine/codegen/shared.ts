@@ -17,6 +17,20 @@ export function safeCssColor(value: string): string {
   return HEX_COLOR.test(value) || NAMED_COLOR.test(value) ? value : '#000000'
 }
 
+/** Indents every non-empty line of `text` by two spaces per level. */
+export function indent(text: string, level: number): string {
+  const pad = '  '.repeat(level)
+  return text
+    .split('\n')
+    .map((line) => (line === '' ? line : pad + line))
+    .join('\n')
+}
+
+/** "hero-title" becomes "heroTitle", for use in a JavaScript name. */
+export function camelCase(slug: string): string {
+  return slug.replace(/-([a-z0-9])/g, (_, character: string) => character.toUpperCase())
+}
+
 export function escapeHtml(text: string): string {
   return text
     .replaceAll('&', '&amp;')
