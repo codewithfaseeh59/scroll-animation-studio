@@ -1,4 +1,5 @@
 import { useRef, type KeyboardEvent } from 'react'
+import { useKeyframeDrag } from '../../hooks/useKeyframeDrag'
 import { useTimelineScrub } from '../../hooks/useTimelineScrub'
 import { formatPercent } from '../../lib/timeline'
 import { selectProject, useEditorStore } from '../../store/editorStore'
@@ -12,10 +13,12 @@ export function Timeline() {
   const project = useEditorStore(selectProject)
   const playhead = useEditorStore((state) => state.playhead)
   const selectedLayerId = useEditorStore((state) => state.selectedLayerId)
+  const selectedKeyframeId = useEditorStore((state) => state.selectedKeyframeId)
   const select = useEditorStore((state) => state.select)
   const setPlayhead = useEditorStore((state) => state.setPlayhead)
   const tracksRef = useRef<HTMLDivElement>(null)
   const { startScrub } = useTimelineScrub(tracksRef)
+  const { draft, startKeyframeDrag } = useKeyframeDrag(tracksRef)
 
   // The last layer is drawn on top, so it is listed first, like in the layer list.
   const topFirst = [...project.layers].reverse()
@@ -94,16 +97,28 @@ export function Timeline() {
                 select(layer.id)
               }}
             >
-              {layer.keyframes.map((keyframe) => (
-                <span
-                  key={keyframe.id}
-                  className={styles.diamond}
-                  style={{ left: `${String(keyframe.progress * 100)}%` }}
-                  role="img"
-                  aria-label={`Keyframe at ${formatPercent(keyframe.progress)}`}
-                  data-keyframe-id={keyframe.id}
-                />
-              ))}
+              {layer.keyframes.map((keyframe) => {
+                const progress =
+                  draft?.keyframeId === keyframe.id ? draft.progress : keyframe.progress
+                return (
+                  <span
+                    key={keyframe.id}
+                    className={styles.diamond}
+                    style={{ left: `${String(progress * 100)}%` }}
+                    role="img"
+                    aria-label={`Keyframe at ${formatPercent(progress)}`}
+                    data-keyframe-id={keyframe.id}
+                    data-selected={
+                      layer.id === selectedLayerId && keyframe.id === selectedKeyframeId
+                        ? ''
+                        : undefined
+                    }
+                    onPointerDown={(event) => {
+                      startKeyframeDrag(event, layer.id, keyframe)
+                    }}
+                  />
+                )
+              })}
             </div>
           ))}
           <div

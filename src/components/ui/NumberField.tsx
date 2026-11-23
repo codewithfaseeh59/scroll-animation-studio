@@ -6,6 +6,7 @@ interface NumberFieldProps {
   value: number
   onCommit: (value: number) => void
   min?: number
+  max?: number
   step?: number
 }
 
@@ -13,9 +14,9 @@ interface NumberFieldProps {
  * A labelled number input. Typing only changes a local draft; the value is
  * committed when the input loses focus or Enter is pressed, so one edit is one
  * undo step. Text that is not a number is dropped and the old value comes back.
- * A value below `min` is raised to `min`. Escape cancels the edit.
+ * A value outside `min` and `max` is moved to the nearest limit. Escape cancels the edit.
  */
-export function NumberField({ label, value, onCommit, min, step = 1 }: NumberFieldProps) {
+export function NumberField({ label, value, onCommit, min, max, step = 1 }: NumberFieldProps) {
   const id = useId()
   const [draft, setDraft] = useState<string | null>(null)
 
@@ -24,7 +25,7 @@ export function NumberField({ label, value, onCommit, min, step = 1 }: NumberFie
     setDraft(null)
     const parsed = draft.trim() === '' ? Number.NaN : Number(draft)
     if (!Number.isFinite(parsed)) return
-    const next = min === undefined ? parsed : Math.max(min, parsed)
+    const next = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, parsed))
     if (next !== value) onCommit(next)
   }
 
@@ -44,6 +45,7 @@ export function NumberField({ label, value, onCommit, min, step = 1 }: NumberFie
         type="number"
         step={step}
         min={min}
+        max={max}
         value={draft ?? String(value)}
         onChange={(event) => {
           setDraft(event.target.value)

@@ -3,6 +3,7 @@ import { MIN_SIZE } from '../../lib/geometry'
 import { selectSelectedLayer, useEditorStore } from '../../store/editorStore'
 import { NumberField } from '../ui/NumberField'
 import { TextField } from '../ui/TextField'
+import { AnimationFields } from './AnimationFields'
 import styles from './Inspector.module.css'
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i
@@ -24,6 +25,8 @@ function LayerFields({ layer }: { layer: Layer }) {
           updateLayer(layer.id, { name })
         }}
       />
+
+      <AnimationFields layer={layer} />
 
       <h3 className={styles.section}>Position and size</h3>
       <div className={styles.grid}>

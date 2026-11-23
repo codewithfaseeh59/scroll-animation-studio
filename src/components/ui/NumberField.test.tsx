@@ -74,3 +74,15 @@ describe('NumberField', () => {
     expect(input).toHaveValue(55)
   })
 })
+
+describe('NumberField maximum', () => {
+  it('lowers a value above the maximum: max 1 and input 5 commits 1', async () => {
+    const onCommit = vi.fn()
+    render(<NumberField label="Opacity" value={0.5} onCommit={onCommit} min={0} max={1} />)
+    const input = screen.getByLabelText('Opacity')
+    await userEvent.clear(input)
+    await userEvent.type(input, '5')
+    await userEvent.tab()
+    expect(onCommit).toHaveBeenCalledWith(1)
+  })
+})

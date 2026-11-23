@@ -182,3 +182,92 @@ describe('loadProject', () => {
     expect(selectCanUndo(state)).toBe(false)
   })
 })
+
+describe('autoKey', () => {
+  it('creates a linear keyframe at the playhead with the given values', () => {
+    store.getState().addLayer(makeLayer('a'))
+    store.getState().setPlayhead(0.4)
+    store.getState().autoKey('a', { opacity: 0.5 })
+    const keyframes = selectSelectedLayer(store.getState())?.keyframes ?? []
+    expect(keyframes).toHaveLength(1)
+    expect(keyframes[0]?.progress).toBe(0.4)
+    expect(keyframes[0]?.values).toEqual({ opacity: 0.5 })
+    expect(keyframes[0]?.ease).toBe('linear')
+  })
+
+  it('updates the keyframe already at the playhead instead of adding another', () => {
+    store.getState().addLayer(makeLayer('a'))
+    store.getState().setPlayhead(0.4)
+    store.getState().autoKey('a', { opacity: 0.5 })
+    store.getState().autoKey('a', { scale: 2 })
+    store.getState().autoKey('a', { opacity: 0.9 })
+    const keyframes = selectSelectedLayer(store.getState())?.keyframes ?? []
+    expect(keyframes).toHaveLength(1)
+    expect(keyframes[0]?.values).toEqual({ opacity: 0.9, scale: 2 })
+  })
+
+  it('keeps keyframes sorted when keying at different playhead positions', () => {
+    store.getState().addLayer(makeLayer('a'))
+    store.getState().setPlayhead(0.8)
+    store.getState().autoKey('a', { opacity: 1 })
+    store.getState().setPlayhead(0.2)
+    store.getState().autoKey('a', { opacity: 0 })
+    const keyframes = selectSelectedLayer(store.getState())?.keyframes ?? []
+    expect(keyframes.map((keyframe) => keyframe.progress)).toEqual([0.2, 0.8])
+  })
+
+  it('is one undo step', () => {
+    store.getState().addLayer(makeLayer('a'))
+    store.getState().setPlayhead(0.4)
+    store.getState().autoKey('a', { opacity: 0.5 })
+    store.getState().undo()
+    expect(selectSelectedLayer(store.getState())?.keyframes).toEqual([])
+  })
+})
+
+describe('keyframe selection', () => {
+  function withKeyframes(): void {
+    store.getState().addLayer(makeLayer('a'))
+    store.getState().addLayer(makeLayer('b'))
+    store.getState().upsertKeyframe('a', keyframe('k1', 0.5, 1))
+  }
+
+  it('selectKeyframe selects the keyframe and its layer', () => {
+    withKeyframes()
+    store.getState().selectKeyframe('a', 'k1')
+    expect(store.getState().selectedLayerId).toBe('a')
+    expect(store.getState().selectedKeyframeId).toBe('k1')
+  })
+
+  it('ignores a keyframe that does not exist', () => {
+    withKeyframes()
+    const before = store.getState()
+    store.getState().selectKeyframe('a', 'missing')
+    expect(store.getState()).toBe(before)
+  })
+
+  it('selecting a layer or nothing clears the keyframe selection', () => {
+    withKeyframes()
+    store.getState().selectKeyframe('a', 'k1')
+    store.getState().select('b')
+    expect(store.getState().selectedKeyframeId).toBeNull()
+    store.getState().selectKeyframe('a', 'k1')
+    store.getState().select(null)
+    expect(store.getState().selectedKeyframeId).toBeNull()
+  })
+
+  it('removing the selected keyframe clears the selection', () => {
+    withKeyframes()
+    store.getState().selectKeyframe('a', 'k1')
+    store.getState().removeKeyframe('a', 'k1')
+    expect(store.getState().selectedKeyframeId).toBeNull()
+    expect(store.getState().selectedLayerId).toBe('a')
+  })
+
+  it('undoing the creation of the selected keyframe clears the selection', () => {
+    withKeyframes()
+    store.getState().selectKeyframe('a', 'k1')
+    store.getState().undo()
+    expect(store.getState().selectedKeyframeId).toBeNull()
+  })
+})
