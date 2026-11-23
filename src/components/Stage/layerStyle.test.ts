@@ -1,6 +1,6 @@
 import { DEFAULT_VALUES } from '../../engine/interpolate'
 import type { Layer, LayerType } from '../../engine/types'
-import { layerBoxStyle, layerContentStyle } from './layerStyle'
+import { layerBoxStyle, layerContentStyle, layerFrameStyle } from './layerStyle'
 
 function makeLayer(type: LayerType): Layer {
   return {
@@ -60,5 +60,28 @@ describe('layerContentStyle', () => {
 
   it('image: only rounds the corners', () => {
     expect(layerContentStyle(makeLayer('image'))).toEqual({ borderRadius: '2cqw' })
+  })
+})
+
+describe('layerFrameStyle', () => {
+  it('has the position and transform of the box but no opacity or blur', () => {
+    const style = layerFrameStyle(makeLayer('rect'), {
+      translateX: 50,
+      translateY: -25,
+      rotate: 90,
+      scale: 1.5,
+      opacity: 0.5,
+      blur: 4,
+    })
+    expect(style).toEqual({
+      position: 'absolute',
+      left: '10%',
+      top: '20%',
+      width: '30%',
+      height: '40%',
+      translate: '50% -25%',
+      rotate: '90deg',
+      scale: 1.5,
+    })
   })
 })
