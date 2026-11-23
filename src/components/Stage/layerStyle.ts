@@ -14,11 +14,11 @@ function stageUnits(value: number): string {
 }
 
 /**
- * Position, size and animated transform of a layer. The individual transform
+ * Position, size and transform of a layer's box. The individual transform
  * properties apply in the fixed order translate, rotate, scale, which is also
  * how the exported CSS animates them.
  */
-export function layerBoxStyle(layer: Layer, values: ResolvedValues): CSSProperties {
+export function layerFrameStyle(layer: Layer, values: ResolvedValues): CSSProperties {
   const { x, y, width, height } = layer.base
   return {
     position: 'absolute',
@@ -29,6 +29,13 @@ export function layerBoxStyle(layer: Layer, values: ResolvedValues): CSSProperti
     translate: `${String(values.translateX)}% ${String(values.translateY)}%`,
     rotate: `${String(values.rotate)}deg`,
     scale: values.scale,
+  }
+}
+
+/** The layer's box plus its opacity and blur. */
+export function layerBoxStyle(layer: Layer, values: ResolvedValues): CSSProperties {
+  return {
+    ...layerFrameStyle(layer, values),
     opacity: values.opacity,
     filter: values.blur > 0 ? `blur(${String(values.blur)}px)` : undefined,
   }

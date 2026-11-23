@@ -1,18 +1,18 @@
 import type { PointerEvent } from 'react'
-import { interpolateLayer } from '../../engine/interpolate'
+import type { ResolvedValues } from '../../engine/interpolate'
 import type { Layer } from '../../engine/types'
 import { layerBoxStyle, layerContentStyle } from './layerStyle'
 import styles from './Stage.module.css'
 
 interface StageLayerProps {
   layer: Layer
-  progress: number
+  values: ResolvedValues
   selected: boolean
   onPointerDown: (event: PointerEvent<HTMLDivElement>) => void
 }
 
-export function StageLayer({ layer, progress, selected, onPointerDown }: StageLayerProps) {
-  const box = layerBoxStyle(layer, interpolateLayer(layer, progress))
+export function StageLayer({ layer, values, selected, onPointerDown }: StageLayerProps) {
+  const box = layerBoxStyle(layer, values)
   const content = layerContentStyle(layer)
 
   return (
