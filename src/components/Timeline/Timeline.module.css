@@ -104,6 +104,7 @@
   width: 12px;
   height: 12px;
   transform: translate(-50%, -50%) rotate(45deg);
+  cursor: ew-resize;
   background: var(--color-accent);
   border: 1px solid var(--color-surface);
 }
@@ -122,4 +123,9 @@
   margin: 0;
   padding: var(--space-3);
   color: var(--color-text-muted);
+}
+
+.diamond[data-selected] {
+  background: var(--color-text);
+  border-color: var(--color-accent);
 }

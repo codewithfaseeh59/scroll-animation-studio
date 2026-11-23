@@ -190,3 +190,86 @@ describe('Timeline playhead slider', () => {
     expect(playhead()).toBe(0)
   })
 })
+
+describe('Timeline keyframes', () => {
+  function diamond(container: HTMLElement, id: string): HTMLElement {
+    const element = container.querySelector<HTMLElement>(`[data-keyframe-id="${id}"]`)
+    if (!element) throw new Error(`diamond ${id} missing`)
+    return element
+  }
+
+  function keyframeProgresses(): number[] {
+    const layer = useEditorStore.getState().history.present.layers[0]
+    return (layer?.keyframes ?? []).map((keyframe) => keyframe.progress)
+  }
+
+  it('pressing a diamond selects it and puts the playhead on it, not under the pointer', () => {
+    load([withKeyframes(createLayer('a', 'rect', 'Box'), [0.25, 0.75])])
+    mockTrackRect()
+    const { container } = render(<Timeline />)
+    fireEvent.pointerDown(diamond(container, 'a-k0'), { button: 0, clientX: 300 })
+    fireEvent.pointerUp(window)
+    expect(useEditorStore.getState().selectedKeyframeId).toBe('a-k0')
+    expect(useEditorStore.getState().selectedLayerId).toBe('a')
+    expect(playhead()).toBe(0.25)
+    expect(diamond(container, 'a-k0')).toHaveAttribute('data-selected')
+    expect(diamond(container, 'a-k1')).not.toHaveAttribute('data-selected')
+  })
+
+  it('a click on a diamond is not an undo step', () => {
+    load([withKeyframes(createLayer('a', 'rect', 'Box'), [0.25])])
+    mockTrackRect()
+    const { container } = render(<Timeline />)
+    fireEvent.pointerDown(diamond(container, 'a-k0'), { button: 0, clientX: 200 })
+    fireEvent.pointerUp(window)
+    expect(useEditorStore.getState().history.past).toHaveLength(0)
+  })
+
+  it('dragging a diamond from 0.25 to 0.5 moves the keyframe (track 100 to 500)', () => {
+    load([withKeyframes(createLayer('a', 'rect', 'Box'), [0.25, 0.75])])
+    mockTrackRect()
+    const { container } = render(<Timeline />)
+    fireEvent.pointerDown(diamond(container, 'a-k0'), { button: 0, clientX: 200 })
+    fireEvent.pointerMove(window, { clientX: 300 })
+    expect(diamond(container, 'a-k0').style.left).toBe('50%')
+    expect(keyframeProgresses()).toEqual([0.25, 0.75])
+    fireEvent.pointerUp(window)
+    expect(keyframeProgresses()).toEqual([0.5, 0.75])
+  })
+
+  it('a drag is one undo step', () => {
+    load([withKeyframes(createLayer('a', 'rect', 'Box'), [0.25, 0.75])])
+    mockTrackRect()
+    const { container } = render(<Timeline />)
+    fireEvent.pointerDown(diamond(container, 'a-k0'), { button: 0, clientX: 200 })
+    fireEvent.pointerMove(window, { clientX: 250 })
+    fireEvent.pointerMove(window, { clientX: 300 })
+    fireEvent.pointerUp(window)
+    act(() => {
+      useEditorStore.getState().undo()
+    })
+    expect(keyframeProgresses()).toEqual([0.25, 0.75])
+    expect(useEditorStore.getState().history.past).toHaveLength(0)
+  })
+
+  it('dropping a diamond on another keyframe is refused and it springs back', () => {
+    load([withKeyframes(createLayer('a', 'rect', 'Box'), [0.25, 0.75])])
+    mockTrackRect()
+    const { container } = render(<Timeline />)
+    fireEvent.pointerDown(diamond(container, 'a-k0'), { button: 0, clientX: 200 })
+    fireEvent.pointerMove(window, { clientX: 400 })
+    fireEvent.pointerUp(window)
+    expect(keyframeProgresses()).toEqual([0.25, 0.75])
+    expect(diamond(container, 'a-k0').style.left).toBe('25%')
+  })
+
+  it('dragging beyond the track stops at 0 and 1', () => {
+    load([withKeyframes(createLayer('a', 'rect', 'Box'), [0.25])])
+    mockTrackRect()
+    const { container } = render(<Timeline />)
+    fireEvent.pointerDown(diamond(container, 'a-k0'), { button: 0, clientX: 200 })
+    fireEvent.pointerMove(window, { clientX: 9000 })
+    fireEvent.pointerUp(window)
+    expect(keyframeProgresses()).toEqual([1])
+  })
+})

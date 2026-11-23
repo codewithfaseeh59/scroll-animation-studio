@@ -16,6 +16,7 @@ import {
   type SnapGuides,
 } from '../lib/geometry'
 import { createId } from '../lib/id'
+import { roundTo } from '../lib/round'
 import { selectProject, useEditorStore } from '../store/editorStore'
 
 type DragAction =
@@ -43,11 +44,6 @@ export interface DragDraft {
 }
 
 type PointerStart = ReactPointerEvent<HTMLElement>
-
-function roundTo(value: number, decimals: number): number {
-  const factor = 10 ** decimals
-  return Math.round(value * factor) / factor
-}
 
 function roundBase(base: LayerBase): LayerBase {
   return {

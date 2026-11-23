@@ -9,19 +9,25 @@ import {
   undo,
   type History,
 } from '../engine/history'
-import type { Keyframe, Layer, Project } from '../engine/types'
+import type { Keyframe, KeyframeValues, Layer, Project } from '../engine/types'
 import { clamp } from '../lib/clamp'
+import { createId } from '../lib/id'
 
 export interface EditorData {
   /** The project plus its undo/redo stacks. Only document edits go through it. */
   history: History<Project>
   selectedLayerId: string | null
+  /** A keyframe of the selected layer, or null. */
+  selectedKeyframeId: string | null
   /** Scroll progress of the scrub preview, 0..1. Not part of undo/redo. */
   playhead: number
 }
 
 export interface EditorActions {
+  /** Selects a layer, or nothing. Clears the keyframe selection. */
   select: (layerId: string | null) => void
+  /** Selects a keyframe together with its layer. Unknown ids are ignored. */
+  selectKeyframe: (layerId: string, keyframeId: string) => void
   setPlayhead: (progress: number) => void
   /** Adds the layer and selects it. */
   addLayer: (layer: Layer) => void
@@ -30,6 +36,11 @@ export interface EditorActions {
   upsertKeyframe: (layerId: string, keyframe: Keyframe) => void
   updateKeyframe: (layerId: string, keyframeId: string, patch: ops.KeyframePatch) => void
   removeKeyframe: (layerId: string, keyframeId: string) => void
+  /**
+   * Auto-key: sets values on the layer at the playhead. A keyframe is created
+   * there, or updated when one already sits at that progress.
+   */
+  autoKey: (layerId: string, values: KeyframeValues) => void
   undo: () => void
   redo: () => void
   /** Replaces the whole project and clears history, selection and playhead. */
@@ -39,11 +50,33 @@ export interface EditorActions {
 export type EditorState = EditorData & EditorActions
 
 export function createInitialData(project: Project = ops.createProject()): EditorData {
-  return { history: createHistory(project), selectedLayerId: null, playhead: 0 }
+  return {
+    history: createHistory(project),
+    selectedLayerId: null,
+    selectedKeyframeId: null,
+    playhead: 0,
+  }
 }
 
-function validSelection(project: Project, layerId: string | null): string | null {
-  return layerId !== null && ops.getLayer(project, layerId) ? layerId : null
+interface Selection {
+  selectedLayerId: string | null
+  selectedKeyframeId: string | null
+}
+
+/** Drops the parts of a selection that no longer exist in the project. */
+function validSelection(project: Project, selection: Selection): Selection {
+  const layer =
+    selection.selectedLayerId === null
+      ? undefined
+      : ops.getLayer(project, selection.selectedLayerId)
+  if (!layer) return { selectedLayerId: null, selectedKeyframeId: null }
+  const hasKeyframe = layer.keyframes.some(
+    (keyframe) => keyframe.id === selection.selectedKeyframeId,
+  )
+  return {
+    selectedLayerId: layer.id,
+    selectedKeyframeId: hasKeyframe ? selection.selectedKeyframeId : null,
+  }
 }
 
 export const useEditorStore = create<EditorState>()((set) => {
@@ -52,7 +85,7 @@ export const useEditorStore = create<EditorState>()((set) => {
     set((state) => {
       const history = commit(state.history, change(state.history.present))
       if (history === state.history) return state
-      return { history, selectedLayerId: validSelection(history.present, state.selectedLayerId) }
+      return { history, ...validSelection(history.present, state) }
     })
   }
 
@@ -60,7 +93,7 @@ export const useEditorStore = create<EditorState>()((set) => {
     set((state) => {
       const history = move(state.history)
       if (history === state.history) return state
-      return { history, selectedLayerId: validSelection(history.present, state.selectedLayerId) }
+      return { history, ...validSelection(history.present, state) }
     })
   }
 
@@ -68,7 +101,21 @@ export const useEditorStore = create<EditorState>()((set) => {
     ...createInitialData(),
 
     select: (layerId) => {
-      set((state) => ({ selectedLayerId: validSelection(state.history.present, layerId) }))
+      set((state) => ({
+        ...validSelection(state.history.present, {
+          selectedLayerId: layerId,
+          selectedKeyframeId: null,
+        }),
+      }))
+    },
+    selectKeyframe: (layerId, keyframeId) => {
+      set((state) => {
+        const selection = validSelection(state.history.present, {
+          selectedLayerId: layerId,
+          selectedKeyframeId: keyframeId,
+        })
+        return selection.selectedKeyframeId === null ? state : selection
+      })
     },
     setPlayhead: (progress) => {
       set({ playhead: clamp(progress, 0, 1) })
@@ -78,7 +125,7 @@ export const useEditorStore = create<EditorState>()((set) => {
       set((state) => {
         const history = commit(state.history, ops.addLayer(state.history.present, layer))
         if (history === state.history) return state
-        return { history, selectedLayerId: layer.id }
+        return { history, selectedLayerId: layer.id, selectedKeyframeId: null }
       })
     },
     removeLayer: (layerId) => {
@@ -95,6 +142,17 @@ export const useEditorStore = create<EditorState>()((set) => {
     },
     removeKeyframe: (layerId, keyframeId) => {
       edit((project) => ops.removeKeyframe(project, layerId, keyframeId))
+    },
+
+    autoKey: (layerId, values) => {
+      edit((project) =>
+        ops.upsertKeyframe(project, layerId, {
+          id: createId(),
+          progress: useEditorStore.getState().playhead,
+          values,
+          ease: 'linear',
+        }),
+      )
     },
 
     undo: () => {
