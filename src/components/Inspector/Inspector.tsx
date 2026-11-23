@@ -5,6 +5,7 @@ import { NumberField } from '../ui/NumberField'
 import { TextField } from '../ui/TextField'
 import { AnimationFields } from './AnimationFields'
 import styles from './Inspector.module.css'
+import { KeyframeFields } from './KeyframeFields'
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i
 
@@ -27,6 +28,7 @@ function LayerFields({ layer }: { layer: Layer }) {
       />
 
       <AnimationFields layer={layer} />
+      <KeyframeFields layer={layer} />
 
       <h3 className={styles.section}>Position and size</h3>
       <div className={styles.grid}>
