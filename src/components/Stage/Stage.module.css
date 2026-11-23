@@ -1,0 +1,41 @@
+.viewport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-5);
+  container-type: size;
+}
+
+/* Largest frame with the project's aspect ratio that fits the viewport. */
+.frame {
+  position: relative;
+  width: min(100cqw, calc(100cqh * var(--ratio)));
+  aspect-ratio: var(--ratio);
+  overflow: hidden;
+  container-type: inline-size;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.fill,
+.image {
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  display: block;
+  object-fit: cover;
+}
+
+.text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  white-space: pre-wrap;
+}

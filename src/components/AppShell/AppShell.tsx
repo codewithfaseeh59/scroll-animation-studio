@@ -1,4 +1,5 @@
 import { useTheme } from '../../hooks/useTheme'
+import { Stage } from '../Stage/Stage'
 import { Toolbar } from '../Toolbar/Toolbar'
 import styles from './AppShell.module.css'
 
@@ -11,7 +12,9 @@ export function AppShell() {
         <Toolbar theme={theme} onToggleTheme={toggleTheme} />
       </div>
       <aside className={styles.layers} aria-label="Layers" />
-      <main className={styles.stage} aria-label="Stage" />
+      <main className={styles.stage} aria-label="Stage">
+        <Stage />
+      </main>
       <aside className={styles.inspector} aria-label="Inspector" />
       <section className={styles.timeline} aria-label="Timeline" />
     </div>

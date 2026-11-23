@@ -21,6 +21,8 @@
 
 .stage {
   grid-area: stage;
+  min-width: 0;
+  min-height: 0;
   background: var(--color-bg);
 }
 
